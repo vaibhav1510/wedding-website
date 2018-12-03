@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<!--
+    This file is a standalone HTML page demonstrating usage of the Authorize.net
+    Accept JavaScript library when integrated with your own payment form.
+
+    For complete documentation for the Accept JavaScript library, see
+    https://developer.authorize.net/api/reference/features/acceptjs.html
+-->
+
+<head>
+    <title>Sample form</title>
+	<script type="text/javascript" src="https://jstest.authorize.net/v1/Accept.js" charset="utf-8"></script>		
+</head>
+
+<body>
+
+	
+<form id="paymentForm"
+    method="POST"
+    action="https://YourServer/PathToExistingPaymentProcessingScript" >
+	
+    <input type="text" name="cardNumber" id="cardNumber" placeholder="cardNumber" value="4111111111111111"/> <br><br>
+    <input type="text" name="expMonth" id="expMonth" placeholder="expMonth" value="08"/> <br><br>
+    <input type="text" name="expYear" id="expYear" placeholder="expYear" value="21"/> <br><br>
+    <input type="text" name="cardCode" id="cardCode" placeholder="cardCode" value="345"> <br><br>
+	
+    <input type="text" name="accountNumber" id="accountNumber" placeholder="accountNumber" value="347563648"/> <br><br>
+    <input type="text" name="routingNumber" id="routingNumber" placeholder="routingNumber" value="021000021"/> <br><br>
+    <input type="text" name="nameOnAccount" id="nameOnAccount" placeholder="nameOnAccount" value="john"/> <br><br>
+    <input type="text" name="accountType" id="accountType" placeholder="accountType" value="checking"> <br><br>
+	
+	
+    <button type="button" onclick="sendPaymentDataToAnet()">Pay</button>
+</form>
+    <input type="text" name="dataValue" id="dataValue" />
+    <input type="text" name="dataDescriptor" id="dataDescriptor" />
+
+<div id="source_id"></div>
+
+<script type="text/javascript">
+
+function sendPaymentDataToAnet() {
+    var authData = {};
+        authData.clientKey = "7DN2FGdW57J67pd74uYN29zHgWe45h2E8b8Mp5Zu2NsxqcgDD5UHjendLeLCsFFb";
+        authData.apiLoginID = "7RJbK73Sqe";
+
+    var cardData = {};
+        cardData.cardNumber = document.getElementById("cardNumber").value;
+        cardData.month = document.getElementById("expMonth").value;
+        cardData.year = document.getElementById("expYear").value;
+        cardData.cardCode = document.getElementById("cardCode").value;
+
+    // If using banking information instead of card information,
+    // build a bankData object instead of a cardData object.
+
+    var bankData = {};
+        bankData.accountNumber = document.getElementById('accountNumber').value;
+        bankData.routingNumber = document.getElementById('routingNumber').value;
+        bankData.nameOnAccount = document.getElementById('nameOnAccount').value;
+        bankData.accountType = document.getElementById('accountType').value;
+
+    var secureData = {};
+        secureData.authData = authData;
+        secureData.cardData = cardData;
+        // If using banking information instead of card information,
+        // send the bankData object instead of the cardData object.
+        //
+        // secureData.bankData = bankData;
+
+    Accept.dispatchData(secureData, responseHandler);
+
+    function responseHandler(response) {
+        if (response.messages.resultCode === "Error") {
+            var i = 0;
+            while (i < response.messages.message.length) {
+				var div = document.getElementById('source_id');
+				div.innerHTML += response.messages.message[i].code + ": " +
+	                response.messages.message[i].text
+				
+                console.log(
+                    response.messages.message[i].code + ": " +
+                    response.messages.message[i].text
+                );
+                i = i + 1;
+            }
+        } else {
+            paymentFormUpdate(response.opaqueData);
+        }
+    }
+}
+
+function paymentFormUpdate(opaqueData) {
+    document.getElementById("dataDescriptor").value = opaqueData.dataDescriptor;
+    document.getElementById("dataValue").value = opaqueData.dataValue;
+
+    // // If using your own form to collect the sensitive data from the customer,
+    // // blank out the fields before submitting them to your server.
+    // document.getElementById("cardNumber").value = "";
+    // document.getElementById("expMonth").value = "";
+    // document.getElementById("expYear").value = "";
+    // document.getElementById("cardCode").value = "";
+    // document.getElementById("accountNumber").value = "";
+    // document.getElementById("routingNumber").value = "";
+    // document.getElementById("nameOnAccount").value = "";
+    // document.getElementById("accountType").value = "";
+
+    document.getElementById("paymentForm").submit();
+}
+</script>
+
+</body>
+</html>
